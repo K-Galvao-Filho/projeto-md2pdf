@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown para PDF Automático</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: calc(100vw - 100px); /* 50px de margem de cada lado */
+            text-align: center;
+        }
+        h1 {
+            color: #000;
+        }
+        .file-input-label {
+            display: inline-block;
+            background: #4a90e2;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .file-input-label:hover {
+            background: #357abd;
+        }
+        #fileInput {
+            display: none;
+        }
+        #renderedContent {
+            margin-top: 20px;
+            padding: 20px;
+            text-align: justify;
+            line-height: 1.5;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="interface">
+        <h1 id="mainTitle">Visualizar e Gerar PDF de Markdown</h1>
+        <label for="fileInput" class="file-input-label" id="uploadLabel">
+            <i class="fas fa-file-upload"></i> Selecionar Markdown
+        </label>
+        <input type="file" id="fileInput" accept=".md,.markdown">
+        <div id="renderedContent"></div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const renderedContent = document.getElementById('renderedContent');
+        const uploadLabel = document.getElementById('uploadLabel');
+        const mainTitle = document.getElementById('mainTitle');
+
+        fileInput.addEventListener('change', function () {
+            const file = fileInput.files[0];
+            if (!file || (!file.name.endsWith('.md') && !file.name.endsWith('.markdown'))) {
+                alert('Por favor, selecione um arquivo .md ou .markdown válido.');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const markdownText = e.target.result;
+                const html = marked.parse(markdownText);
+                renderedContent.innerHTML = html;
+
+                // Oculta o botão e o título
+                uploadLabel.style.display = 'none';
+                mainTitle.style.display = 'none';
+
+                // Gera PDF automaticamente
+                gerarPDF(renderedContent);
+            };
+            reader.readAsText(file);
+        });
+
+        function gerarPDF(elemento) {
+            const options = {
+                margin:       [1, 1, 1, 1], // margens em cm
+                filename:     'documento.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'cm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(options).from(elemento).save();
+        }
+    </script>
+</body>
+</html>
